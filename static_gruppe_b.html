@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myrone - KI-Service-Assistent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #17a2b8;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: white;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .bot-message {
+            background-color: #f8f9fa;
+            color: #333;
+            margin-right: auto;
+            border: 1px solid #dee2e6;
+        }
+
+        .user-message {
+            background-color: #17a2b8;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            background-color: white;
+            border-top: 1px solid #dee2e6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>
+                    Myrone - KI-Service-Assistent
+                </h4>
+                <small>Gruppe B - Niedrige Emotionalität, Hoher Höflichkeitsgrad</small>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <strong>Myrone:</strong> Guten Tag. Wie kann ich Sie unterstützen?
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <div class="d-grid">
+                    <button id="step1Btn" class="btn btn-outline-info" onclick="handleStep1()">
+                        <i class="fas fa-shipping-fast me-2"></i>
+                        Meine Sendung ist nicht angekommen
+                    </button>
+
+                    <button id="step2Btn" class="btn btn-outline-info hidden" onclick="handleStep2()">
+                        <i class="fas fa-hashtag me-2"></i>
+                        12345
+                    </button>
+
+                    <button id="step3Btn" class="btn btn-outline-info hidden" onclick="handleStep3()">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Was schlagen Sie vor?
+                    </button>
+
+                    <button id="step4Btn" class="btn btn-outline-info hidden" onclick="handleStep4()">
+                        <i class="fas fa-phone me-2"></i>
+                        Weitere Informationen?
+                    </button>
+
+                    <button id="step5Btn" class="btn btn-outline-info hidden" onclick="handleStep5()">
+                        <i class="fas fa-times me-2"></i>
+                        Chat beenden
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const conversationSteps = [
+            { user: "Meine Sendung ist nicht angekommen", bot: "Danke für Ihre Nachricht. Ich benötige bitte Ihre Bestellnummer zur Prüfung." },
+            { user: "12345", bot: "Vielen Dank. Laut System wurde Ihr Paket am 22.06. verschickt. Seit dem 25.06. befindet es sich im Verteilzentrum. Der Status ist unverändert." },
+            { user: "Was schlagen Sie vor?", bot: "Leider kann ich hier keine Änderung vornehmen. Bitte wenden Sie sich an den Kundenservice: 0800 1234567." },
+            { user: "Weitere Informationen?", bot: "Der Chat bietet keine zusätzlichen Optionen. Ich danke für Ihre Geduld." },
+            { user: "Chat beenden", bot: "Vielen Dank für Ihr Verständnis. Der Chat wird nun beendet." }
+        ];
+
+        const chatMessages = document.getElementById('chatMessages');
+
+        function addMessage(message, isBot = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isBot ? 'bot-message' : 'user-message'}`;
+
+            if (isBot) {
+                messageDiv.innerHTML = `<strong>Myrone:</strong> ${message}`;
+            } else {
+                messageDiv.innerHTML = `<strong>Sie:</strong> ${message}`;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function switchButtons(currentBtnId, nextBtnId) {
+            document.getElementById(currentBtnId).classList.add('hidden');
+            if (nextBtnId) {
+                document.getElementById(nextBtnId).classList.remove('hidden');
+            }
+        }
+
+        function disableAllButtons() {
+            const buttons = ['step1Btn', 'step2Btn', 'step3Btn', 'step4Btn', 'step5Btn'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                btn.disabled = true;
+                btn.classList.add('hidden');
+            });
+        }
+
+        function handleStep(stepNumber) {
+            const step = conversationSteps[stepNumber - 1];
+            addMessage(step.user, false);
+
+            setTimeout(() => {
+                addMessage(step.bot, true);
+                if (stepNumber < 4) {
+                    switchButtons(`step${stepNumber}Btn`, `step${stepNumber + 1}Btn`);
+                } else {
+                    switchButtons(`step${stepNumber}Btn`, 'step5Btn');
+                }
+            }, 1000);
+        }
+
+        function handleStep1() { handleStep(1); }
+        function handleStep2() { handleStep(2); }
+        function handleStep3() { handleStep(3); }
+        function handleStep4() { handleStep(4); }
+
+        function handleStep5() {
+            addMessage("Chat beenden", false);
+            setTimeout(() => {
+                disableAllButtons();
+                addMessage("Danke für Ihre Teilnahme am Experiment.", true);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
